@@ -9,7 +9,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace APIPassApp
@@ -30,7 +32,24 @@ namespace APIPassApp
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "APIPassApp", Version = "v1" });
+                c.SwaggerDoc("v1", 
+                    new OpenApiInfo 
+                    { 
+                        Title = "APIPassApp", 
+                        Version = "v1", 
+                        Description = "API REST para la aplicación Pass App de gestión de cuentas"
+                    });
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                    {
+                        Description = "Token para permitir acceso a endpoints",
+                        Name = "Authorize",
+                        BearerFormat = "Bearer {token}"
+                    });
+
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
@@ -47,6 +66,8 @@ namespace APIPassApp
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
